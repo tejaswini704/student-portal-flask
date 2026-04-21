@@ -90,14 +90,14 @@ def login():
 
         conn.close()
 
-        if user and user[1] == password:
+        if user and user['password'] == password:
 
             session.clear()
             session.permanent = True
 
-            role = user[2].strip().lower()
+            role = user['role'].strip().lower()
 
-            session['user'] = user[0]
+            session['user'] = user['username']
             session['role'] = role
 
             flash("Login successful!", "success")
@@ -146,7 +146,7 @@ def register():
 
     return render_template('register.html')
 
-# ================= STUDENT DASHBOARD (FIXED SAFETY) =================
+# ================= STUDENT DASHBOARD =================
 @app.route('/student_dashboard')
 def student_dashboard():
     if session.get('role') != 'student':
@@ -166,7 +166,7 @@ def student_dashboard():
     student = cursor.fetchone()
     conn.close()
 
-    # 🔥 IMPORTANT FIX (prevents 500 error)
+    # FIX: prevent crash
     if student is None:
         student = ("Not Found", username, "-", "-", 0)
 
@@ -386,7 +386,7 @@ def export_csv():
     def generate():
         yield "ID,Name,Roll,Department,Marks\n"
         for row in data:
-            yield f"{row[0]},{row[1]},{row[2]},{row[3]},{row[4]}\n"
+            yield f"{row['id']},{row['name']},{row['roll']},{row['dept']},{row['marks']}\n"
 
     return Response(
         generate(),
