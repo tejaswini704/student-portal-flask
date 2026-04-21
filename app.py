@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, url_for, flash, Response
-import mysql.connector
+import sqlite3
 import os
 
 app = Flask(__name__, template_folder="templates")
@@ -14,19 +14,64 @@ app.config.update(
 
 # ================= DATABASE =================
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Knpfae@v327dt",
-        database="student_db"
-    )
+    conn = sqlite3.connect("student.db", check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# ================= INIT DB =================
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT,
+            role TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            roll TEXT,
+            dept TEXT,
+            marks INTEGER
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# ================= AUTO ADMIN FIX (🔥 IMPORTANT ADDED) =================
+def create_admin():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM users WHERE username='admin'")
+    admin = cursor.fetchone()
+
+    if not admin:
+        cursor.execute(
+            "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+            ("admin", "admin", "admin")
+        )
+        conn.commit()
+
+    conn.close()
+
+create_admin()
 
 # ================= HOME =================
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# ================= LOGIN (FIXED CORE ISSUE) =================
+# ================= LOGIN =================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -34,15 +79,14 @@ def login():
         password = request.form['password']
 
         conn = get_db_connection()
-        cursor = conn.cursor(buffered=True)
+        cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT username, password, role FROM users WHERE username=%s",
+            "SELECT username, password, role FROM users WHERE username=?",
             (username,)
         )
         user = cursor.fetchone()
 
-        cursor.close()
         conn.close()
 
         if user and user[1] == password:
@@ -50,7 +94,7 @@ def login():
             session.clear()
             session.permanent = True
 
-            role = user[2].strip().lower()   # 🔥 FIX MOST IMPORTANT
+            role = user[2].strip().lower()
 
             session['user'] = user[0]
             session['role'] = role
@@ -81,12 +125,12 @@ def register():
         role = request.form['role'].strip().lower()
 
         conn = get_db_connection()
-        cursor = conn.cursor(buffered=True)
+        cursor = conn.cursor()
 
         try:
             cursor.execute("""
                 INSERT INTO users (username, password, role)
-                VALUES (%s, %s, %s)
+                VALUES (?, ?, ?)
             """, (username, password, role))
 
             conn.commit()
@@ -95,7 +139,6 @@ def register():
         except:
             flash("Username already exists", "danger")
 
-        cursor.close()
         conn.close()
 
         return redirect(url_for('login'))
@@ -105,23 +148,23 @@ def register():
 # ================= DASHBOARDS =================
 @app.route('/student_dashboard')
 def student_dashboard():
-    if 'user' not in session or session.get('role') != 'student':
+    if session.get('role') != 'student':
         return redirect(url_for('login'))
     return render_template("student_dashboard.html")
 
 @app.route('/teacher_dashboard')
 def teacher_dashboard():
-    if 'user' not in session or session.get('role') != 'teacher':
+    if session.get('role') != 'teacher':
         return redirect(url_for('login'))
     return render_template("teacher_dashboard.html")
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user' not in session or session.get('role') != 'admin':
+    if session.get('role') != 'admin':
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor()
 
     cursor.execute("SELECT COUNT(*) FROM students")
     total_students = cursor.fetchone()[0]
@@ -140,7 +183,6 @@ def dashboard():
     """)
     recent_students = cursor.fetchall()
 
-    cursor.close()
     conn.close()
 
     return render_template(
@@ -160,20 +202,19 @@ def view_students():
     search = request.args.get('search', '')
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor()
 
     if search:
         cursor.execute("""
             SELECT id, name, roll, dept, marks
             FROM students
-            WHERE name LIKE %s OR roll LIKE %s OR dept LIKE %s
+            WHERE name LIKE ? OR roll LIKE ? OR dept LIKE ?
         """, (f"%{search}%", f"%{search}%", f"%{search}%"))
     else:
         cursor.execute("SELECT id, name, roll, dept, marks FROM students")
 
     students = cursor.fetchall()
 
-    cursor.close()
     conn.close()
 
     return render_template("view_students.html", students=students, search=search)
@@ -191,15 +232,14 @@ def add_student():
         marks = request.form['marks']
 
         conn = get_db_connection()
-        cursor = conn.cursor(buffered=True)
+        cursor = conn.cursor()
 
         cursor.execute("""
             INSERT INTO students (name, roll, dept, marks)
-            VALUES (%s, %s, %s, %s)
+            VALUES (?, ?, ?, ?)
         """, (name, roll, dept, marks))
 
         conn.commit()
-        cursor.close()
         conn.close()
 
         flash("Student added successfully!", "success")
@@ -222,17 +262,16 @@ def student_marks():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor()
 
     cursor.execute("""
         SELECT name, roll, marks 
         FROM students 
-        WHERE name=%s
+        WHERE name=?
     """, (session['user'],))
 
     data = cursor.fetchone()
 
-    cursor.close()
     conn.close()
 
     return render_template("student_marks.html", data=data)
@@ -244,13 +283,13 @@ def edit_student(id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor()
 
     if request.method == 'POST':
         cursor.execute("""
             UPDATE students
-            SET name=%s, roll=%s, dept=%s, marks=%s
-            WHERE id=%s
+            SET name=?, roll=?, dept=?, marks=?
+            WHERE id=?
         """, (
             request.form['name'],
             request.form['roll'],
@@ -260,16 +299,14 @@ def edit_student(id):
         ))
 
         conn.commit()
-        cursor.close()
         conn.close()
 
         flash("Student updated successfully!", "info")
         return redirect(url_for('manage_students'))
 
-    cursor.execute("SELECT id, name, roll, dept, marks FROM students WHERE id=%s", (id,))
+    cursor.execute("SELECT id, name, roll, dept, marks FROM students WHERE id=?", (id,))
     student = cursor.fetchone()
 
-    cursor.close()
     conn.close()
 
     return render_template('edit_student.html', student=student)
@@ -281,12 +318,10 @@ def delete_student(id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM students WHERE id=%s", (id,))
+    cursor.execute("DELETE FROM students WHERE id=?", (id,))
     conn.commit()
-
-    cursor.close()
     conn.close()
 
     flash("Student deleted successfully!", "danger")
@@ -299,12 +334,11 @@ def manage_students():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor()
 
     cursor.execute("SELECT id, name, roll, dept, marks FROM students")
     students = cursor.fetchall()
 
-    cursor.close()
     conn.close()
 
     return render_template('manage_students.html', students=students)
@@ -323,12 +357,11 @@ def export_csv():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    cursor = conn.cursor(buffered=True)
+    cursor = conn.cursor()
 
     cursor.execute("SELECT id, name, roll, dept, marks FROM students")
     data = cursor.fetchall()
 
-    cursor.close()
     conn.close()
 
     def generate():
