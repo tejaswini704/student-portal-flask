@@ -113,20 +113,34 @@ button:hover {
 
         <h2>✏️ Edit Student</h2>
 
+        {% if student %}
+
         <form method="POST">
 
-            <!-- FIXED ACCESS (IMPORTANT) -->
-            <input type="text" name="name" value="{{ student.name }}" placeholder="Name" required>
+            <!-- SAFE FIX: supports both Row and dict -->
+            <input type="text" name="name"
+                value="{{ student['name'] if student['name'] is defined else student.name }}"
+                placeholder="Name" required>
 
-            <input type="text" name="roll" value="{{ student.roll }}" placeholder="Roll No" required>
+            <input type="text" name="roll"
+                value="{{ student['roll'] if student['roll'] is defined else student.roll }}"
+                placeholder="Roll No" required>
 
-            <input type="text" name="dept" value="{{ student.dept }}" placeholder="Department" required>
+            <input type="text" name="dept"
+                value="{{ student['dept'] if student['dept'] is defined else student.dept }}"
+                placeholder="Department" required>
 
-            <input type="number" name="marks" value="{{ student.marks }}" placeholder="Marks" required>
+            <input type="number" name="marks"
+                value="{{ student['marks'] if student['marks'] is defined else student.marks }}"
+                placeholder="Marks" required>
 
             <button type="submit">Update Student</button>
 
         </form>
+
+        {% else %}
+            <p style="color:red;">Student data not found</p>
+        {% endif %}
 
     </div>
 

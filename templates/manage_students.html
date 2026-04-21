@@ -116,22 +116,25 @@ body {
 
             <tbody>
 
-            {% if students and students|length > 0 %}
+            {% if students %}
 
                 {% for s in students %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ s[1] }}</td>
-                    <td>{{ s[2] }}</td>
-                    <td>{{ s[3] }}</td>
-                    <td>{{ s[4] }}</td>
+
+                    <!-- SAFE FIX (IMPORTANT) -->
+                    <td>{{ s['name'] if s['name'] is defined else s.name }}</td>
+                    <td>{{ s['roll'] if s['roll'] is defined else s.roll }}</td>
+                    <td>{{ s['dept'] if s['dept'] is defined else s.dept }}</td>
+                    <td>{{ s['marks'] if s['marks'] is defined else s.marks }}</td>
 
                     <td>
-                        <a href="/edit/{{ s[0] }}" class="btn btn-warning btn-sm">
+                        <a href="/edit/{{ s['id'] if s['id'] is defined else s.id }}"
+                           class="btn btn-warning btn-sm">
                             Edit
                         </a>
 
-                        <a href="/delete/{{ s[0] }}"
+                        <a href="/delete/{{ s['id'] if s['id'] is defined else s.id }}"
                            class="btn btn-danger btn-sm"
                            onclick="return confirm('Are you sure you want to delete this student?')">
                            Delete

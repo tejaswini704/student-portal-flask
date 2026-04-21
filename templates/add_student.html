@@ -66,8 +66,16 @@ input {
     border-radius: 8px;
     border: 1px solid #ddd;
     outline: none;
+    box-sizing: border-box;
+    transition: 0.3s;
 }
 
+input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 5px rgba(40,167,69,0.2);
+}
+
+/* BUTTON */
 button {
     width: 100%;
     padding: 12px;
@@ -81,9 +89,10 @@ button {
 
 button:hover {
     background: #218838;
+    transform: translateY(-1px);
 }
 
-/* FLASH IMPROVEMENT */
+/* FLASH */
 .alert {
     margin-left: 260px;
     margin-right: 20px;
@@ -94,27 +103,13 @@ button:hover {
 
 <body>
 
-<!-- FLASH MESSAGE (SAFE HANDLING) -->
+<!-- FLASH MESSAGE (SAFE + CLEAN) -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
-
-      {% if category == 'success' %}
-        <div class="alert alert-success text-center m-3">
+        <div class="alert alert-{{ category }} text-center m-3">
             {{ message }}
         </div>
-
-      {% elif category == 'danger' %}
-        <div class="alert alert-danger text-center m-3">
-            {{ message }}
-        </div>
-
-      {% else %}
-        <div class="alert alert-info text-center m-3">
-            {{ message }}
-        </div>
-      {% endif %}
-
     {% endfor %}
   {% endif %}
 {% endwith %}
@@ -136,13 +131,11 @@ button:hover {
 
         <h3 class="mb-4">➕ Add Student</h3>
 
-        <!-- FORM -->
         <form method="POST" action="/add">
 
             <input type="text" name="name" placeholder="Full Name" required>
 
-            <!-- IMPORTANT FOR LOGIN LINKING -->
-            <input type="text" name="username" placeholder="Username (for login & marks access)" required>
+            <input type="text" name="username" placeholder="Username (for login)" required>
 
             <input type="text" name="roll" placeholder="Roll No" required>
 

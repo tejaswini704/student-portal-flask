@@ -135,6 +135,7 @@ def register():
                 VALUES (?, ?, ?)
             """, (username, password, role))
 
+            # create student profile only if role = student
             if role == "student":
                 cursor.execute("""
                     INSERT INTO students (name, username, roll, dept, marks)
@@ -243,11 +244,15 @@ def view_students():
 
     if search:
         cursor.execute("""
-            SELECT * FROM students
+            SELECT id, name, username, roll, dept, marks
+            FROM students
             WHERE name LIKE ? OR roll LIKE ? OR dept LIKE ?
         """, (f"%{search}%", f"%{search}%", f"%{search}%"))
     else:
-        cursor.execute("SELECT * FROM students")
+        cursor.execute("""
+            SELECT id, name, username, roll, dept, marks
+            FROM students
+        """)
 
     students = cursor.fetchall()
     conn.close()
@@ -322,7 +327,7 @@ def student_marks():
 
     return render_template("student_marks.html", data=data)
 
-# ================= EDIT (FIXED SAFE VERSION) =================
+# ================= EDIT =================
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_student(id):
     if session.get('role') != 'admin':

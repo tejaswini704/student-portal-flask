@@ -105,8 +105,9 @@ body {
     </div>
 
     <a href="/export" class="btn btn-success mb-3">
-    ⬇ Download CSV
-</a>
+        ⬇ Download CSV
+    </a>
+
     <!-- TABLE -->
     <div class="table-box">
 
@@ -128,10 +129,13 @@ body {
                 {% for s in students %}
                 <tr>
                     <td>{{ loop.index }}</td>
-                    <td>{{ s[1] }}</td>
-                    <td>{{ s[2] }}</td>
-                    <td>{{ s[3] }}</td>
-                    <td>{{ s[4] }}</td>
+
+                    <!-- SAFE FIX: supports SQLite Row -->
+                    <td>{{ s['name'] if s['name'] is defined else s.name }}</td>
+                    <td>{{ s['roll'] if s['roll'] is defined else s.roll }}</td>
+                    <td>{{ s['dept'] if s['dept'] is defined else s.dept }}</td>
+                    <td>{{ s['marks'] if s['marks'] is defined else s.marks }}</td>
+
                 </tr>
                 {% endfor %}
             {% else %}
