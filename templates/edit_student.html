@@ -115,13 +115,14 @@ button:hover {
 
         <form method="POST">
 
-            <input type="text" name="name" value="{{ student[1] }}" placeholder="Name" required>
+            <!-- FIXED ACCESS (IMPORTANT) -->
+            <input type="text" name="name" value="{{ student.name }}" placeholder="Name" required>
 
-            <input type="text" name="roll" value="{{ student[2] }}" placeholder="Roll No" required>
+            <input type="text" name="roll" value="{{ student.roll }}" placeholder="Roll No" required>
 
-            <input type="text" name="dept" value="{{ student[3] }}" placeholder="Department" required>
+            <input type="text" name="dept" value="{{ student.dept }}" placeholder="Department" required>
 
-            <input type="number" name="marks" value="{{ student[4] }}" placeholder="Marks" required>
+            <input type="number" name="marks" value="{{ student.marks }}" placeholder="Marks" required>
 
             <button type="submit">Update Student</button>
 

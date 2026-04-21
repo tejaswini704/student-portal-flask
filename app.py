@@ -72,12 +72,11 @@ create_admin()
 def home():
     return render_template('index.html')
 
-# ================= LOGIN (FIXED) =================
+# ================= LOGIN =================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
 
-        # 🔥 FIX 1: remove hidden spaces
         username = request.form['username'].strip()
         password = request.form['password'].strip()
 
@@ -91,7 +90,6 @@ def login():
         user = cursor.fetchone()
         conn.close()
 
-        # 🔥 FIX 2: safe comparison
         if user and str(user['password']).strip() == password:
 
             session.clear()
@@ -245,12 +243,11 @@ def view_students():
 
     if search:
         cursor.execute("""
-            SELECT id, name, roll, dept, marks
-            FROM students
+            SELECT * FROM students
             WHERE name LIKE ? OR roll LIKE ? OR dept LIKE ?
         """, (f"%{search}%", f"%{search}%", f"%{search}%"))
     else:
-        cursor.execute("SELECT id, name, roll, dept, marks FROM students")
+        cursor.execute("SELECT * FROM students")
 
     students = cursor.fetchall()
     conn.close()
@@ -307,8 +304,7 @@ def student_marks():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT name, roll, dept, marks 
-        FROM students 
+        SELECT * FROM students 
         WHERE username = ?
     """, (username,))
 
@@ -318,6 +314,7 @@ def student_marks():
     if data is None:
         data = {
             "name": "Not Found",
+            "username": username,
             "roll": "-",
             "dept": "-",
             "marks": 0
@@ -325,7 +322,7 @@ def student_marks():
 
     return render_template("student_marks.html", data=data)
 
-# ================= EDIT =================
+# ================= EDIT (FIXED SAFE VERSION) =================
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_student(id):
     if session.get('role') != 'admin':
@@ -335,22 +332,26 @@ def edit_student(id):
     cursor = conn.cursor()
 
     if request.method == 'POST':
+
+        name = request.form['name']
+        roll = request.form['roll']
+        dept = request.form['dept']
+
+        try:
+            marks = int(request.form['marks'])
+        except:
+            marks = 0
+
         cursor.execute("""
             UPDATE students
             SET name=?, roll=?, dept=?, marks=?
             WHERE id=?
-        """, (
-            request.form['name'],
-            request.form['roll'],
-            request.form['dept'],
-            request.form['marks'],
-            id
-        ))
+        """, (name, roll, dept, marks, id))
 
         conn.commit()
         conn.close()
 
-        flash("Student updated successfully!", "info")
+        flash("Student updated successfully!", "success")
         return redirect(url_for('manage_students'))
 
     cursor.execute("SELECT * FROM students WHERE id=?", (id,))
