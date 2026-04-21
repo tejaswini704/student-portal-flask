@@ -88,7 +88,7 @@ button:hover {
 
 <body>
 
-<!-- FLASH MESSAGE (UNCHANGED) -->
+<!-- FLASH MESSAGE -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
@@ -99,7 +99,7 @@ button:hover {
   {% endif %}
 {% endwith %}
 
-<!-- SIDEBAR (UNCHANGED) -->
+<!-- SIDEBAR -->
 <div class="sidebar">
     <h2>🎓 Portal</h2>
     <a href="/dashboard">🏠 Dashboard</a>
@@ -116,13 +116,13 @@ button:hover {
 
         <h3 class="mb-4">➕ Add Student</h3>
 
-        <!-- FORM (UNCHANGED STRUCTURE + FIX ADDED) -->
-        <form method="POST">
+        <!-- FORM -->
+        <form method="POST" action="/add">
 
-            <input type="text" name="name" placeholder="Name" required>
+            <input type="text" name="name" placeholder="Full Name" required>
 
-            <!-- ✅ ADDED FIELD (IMPORTANT FIX) -->
-            <input type="text" name="username" placeholder="Username (for login)" required>
+            <!-- IMPORTANT FOR LOGIN MATCHING -->
+            <input type="text" name="username" placeholder="Username (for login & marks access)" required>
 
             <input type="text" name="roll" placeholder="Roll No" required>
 

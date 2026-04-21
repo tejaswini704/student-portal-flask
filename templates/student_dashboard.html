@@ -113,18 +113,19 @@ body {
 
 <div class="main">
 
-    <!-- USER INFO (FIXED: NOW SHOWS REAL DATA) -->
+    <!-- USER INFO (SAFE FIX) -->
     <div class="card-box">
 
         {% if student %}
 
-            <h4>Welcome {{ student[0] }} 👋</h4>
-            <p><b>Username:</b> {{ student[1] }}</p>
-            <p><b>Roll:</b> {{ student[2] }}</p>
-            <p><b>Department:</b> {{ student[3] }}</p>
-            <p><b>Marks:</b> {{ student[4] }}</p>
+            <h4>Welcome {{ student["name"] }} 👋</h4>
 
-            {% if student[4] >= 40 %}
+            <p><b>Username:</b> {{ student["username"] }}</p>
+            <p><b>Roll:</b> {{ student["roll"] }}</p>
+            <p><b>Department:</b> {{ student["dept"] }}</p>
+            <p><b>Marks:</b> {{ student["marks"] }}</p>
+
+            {% if student["marks"] >= 40 %}
                 <p class="pass">Status: PASS 🎉</p>
             {% else %}
                 <p class="fail">Status: FAIL ❌</p>
@@ -136,7 +137,7 @@ body {
 
     </div>
 
-    <!-- FEATURES (UNCHANGED) -->
+    <!-- FEATURES -->
     <div class="grid">
 
         <div class="feature">

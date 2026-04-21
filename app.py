@@ -32,7 +32,6 @@ def init_db():
         )
     """)
 
-    # ✅ FIXED: added username column (IMPORTANT)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +48,7 @@ def init_db():
 
 init_db()
 
-# ================= AUTO ADMIN FIX =================
+# ================= AUTO ADMIN =================
 def create_admin():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -147,15 +146,13 @@ def register():
 
     return render_template('register.html')
 
-# ================= DASHBOARDS =================
-
-# ✅ FIXED STUDENT DASHBOARD (IMPORTANT)
+# ================= STUDENT DASHBOARD (FIXED SAFETY) =================
 @app.route('/student_dashboard')
 def student_dashboard():
     if session.get('role') != 'student':
         return redirect(url_for('login'))
 
-    username = session['user']
+    username = session.get('user')
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -169,9 +166,13 @@ def student_dashboard():
     student = cursor.fetchone()
     conn.close()
 
+    # 🔥 IMPORTANT FIX (prevents 500 error)
+    if student is None:
+        student = ("Not Found", username, "-", "-", 0)
+
     return render_template("student_dashboard.html", student=student)
 
-
+# ================= TEACHER DASHBOARD =================
 @app.route('/teacher_dashboard')
 def teacher_dashboard():
     if session.get('role') != 'teacher':
@@ -243,7 +244,7 @@ def view_students():
 
     return render_template("view_students.html", students=students, search=search)
 
-# ================= ADD (FIXED) =================
+# ================= ADD =================
 @app.route('/add', methods=['GET', 'POST'])
 def add_student():
     if session.get('role') != 'admin':
@@ -251,7 +252,7 @@ def add_student():
 
     if request.method == 'POST':
         name = request.form['name']
-        username = request.form['username']   # ✅ FIX ADDED
+        username = request.form['username']
         roll = request.form['roll']
         dept = request.form['dept']
         marks = request.form['marks']
@@ -272,7 +273,7 @@ def add_student():
 
     return render_template('add_student.html')
 
-# ================= STUDENT MARKS (FIXED) =================
+# ================= STUDENT MARKS =================
 @app.route('/student_marks')
 def student_marks():
     if 'user' not in session:
@@ -290,7 +291,6 @@ def student_marks():
     """, (username,))
 
     data = cursor.fetchone()
-
     conn.close()
 
     return render_template("student_marks.html", data=data)
