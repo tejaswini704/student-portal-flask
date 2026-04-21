@@ -36,7 +36,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
-            username TEXT,
+            username TEXT UNIQUE,
             roll TEXT,
             dept TEXT,
             marks INTEGER
@@ -72,30 +72,32 @@ create_admin()
 def home():
     return render_template('index.html')
 
-# ================= LOGIN =================
+# ================= LOGIN (FIXED) =================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+
+        # 🔥 FIX 1: remove hidden spaces
+        username = request.form['username'].strip()
+        password = request.form['password'].strip()
 
         conn = get_db_connection()
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT username, password, role FROM users WHERE username=?",
+            "SELECT username, password, role FROM users WHERE TRIM(username)=TRIM(?)",
             (username,)
         )
         user = cursor.fetchone()
-
         conn.close()
 
-        if user and user['password'] == password:
+        # 🔥 FIX 2: safe comparison
+        if user and str(user['password']).strip() == password:
 
             session.clear()
             session.permanent = True
 
-            role = user['role'].strip().lower()
+            role = str(user['role']).strip().lower()
 
             session['user'] = user['username']
             session['role'] = role
@@ -121,8 +123,9 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+
+        username = request.form['username'].strip()
+        password = request.form['password'].strip()
         role = request.form['role'].strip().lower()
 
         conn = get_db_connection()
@@ -134,6 +137,12 @@ def register():
                 VALUES (?, ?, ?)
             """, (username, password, role))
 
+            if role == "student":
+                cursor.execute("""
+                    INSERT INTO students (name, username, roll, dept, marks)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (username, username, "-", "-", 0))
+
             conn.commit()
             flash("Registration successful! Please login", "success")
 
@@ -141,7 +150,6 @@ def register():
             flash("Username already exists", "danger")
 
         conn.close()
-
         return redirect(url_for('login'))
 
     return render_template('register.html')
@@ -166,10 +174,9 @@ def student_dashboard():
     student = cursor.fetchone()
     conn.close()
 
-    # FIX: prevent crash
     if student is None:
         student = {
-            "name": "Not Found",
+            "name": "Profile Not Created",
             "username": username,
             "roll": "-",
             "dept": "-",
@@ -261,22 +268,24 @@ def add_student():
         username = request.form['username']
         roll = request.form['roll']
         dept = request.form['dept']
-        marks = request.form['marks']
+
+        try:
+            marks = int(request.form['marks'])
+        except:
+            marks = 0
 
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # INSERT INTO students table
         cursor.execute("""
             INSERT INTO students (name, username, roll, dept, marks)
             VALUES (?, ?, ?, ?, ?)
         """, (name, username, roll, dept, marks))
 
-        # FIX: ALSO insert into users table for login
         cursor.execute("""
             INSERT INTO users (username, password, role)
             VALUES (?, ?, ?)
-        """, (username, roll, "student"))
+        """, (username, "123", "student"))
 
         conn.commit()
         conn.close()
@@ -306,7 +315,6 @@ def student_marks():
     data = cursor.fetchone()
     conn.close()
 
-    # FIX: prevent crash if no record found
     if data is None:
         data = {
             "name": "Not Found",
@@ -345,7 +353,7 @@ def edit_student(id):
         flash("Student updated successfully!", "info")
         return redirect(url_for('manage_students'))
 
-    cursor.execute("SELECT id, name, roll, dept, marks FROM students WHERE id=?", (id,))
+    cursor.execute("SELECT * FROM students WHERE id=?", (id,))
     student = cursor.fetchone()
 
     conn.close()
@@ -361,7 +369,14 @@ def delete_student(id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    cursor.execute("SELECT username FROM students WHERE id=?", (id,))
+    user = cursor.fetchone()
+
     cursor.execute("DELETE FROM students WHERE id=?", (id,))
+
+    if user:
+        cursor.execute("DELETE FROM users WHERE username=?", (user['username'],))
+
     conn.commit()
     conn.close()
 
@@ -377,7 +392,7 @@ def manage_students():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, name, roll, dept, marks FROM students")
+    cursor.execute("SELECT * FROM students")
     students = cursor.fetchall()
 
     conn.close()
@@ -400,15 +415,15 @@ def export_csv():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, name, roll, dept, marks FROM students")
+    cursor.execute("SELECT * FROM students")
     data = cursor.fetchall()
 
     conn.close()
 
     def generate():
-        yield "ID,Name,Roll,Department,Marks\n"
+        yield "ID,Name,Username,Roll,Department,Marks\n"
         for row in data:
-            yield f"{row['id']},{row['name']},{row['roll']},{row['dept']},{row['marks']}\n"
+            yield f"{row['id']},{row['name']},{row['username']},{row['roll']},{row['dept']},{row['marks']}\n"
 
     return Response(
         generate(),

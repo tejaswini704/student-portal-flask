@@ -227,7 +227,7 @@ body {
         <div class="card-box">
             <h5>Recent Students</h5>
 
-            {% if recent_students %}
+            {% if recent_students and recent_students|length > 0 %}
             <table class="table table-bordered mt-3">
                 <tr>
                     <th>ID</th>
@@ -239,11 +239,11 @@ body {
 
                 {% for s in recent_students %}
                 <tr>
-                    <td>{{ s[0] }}</td>
-                    <td>{{ s[1] }}</td>
-                    <td>{{ s[2] }}</td>
-                    <td>{{ s[3] }}</td>
-                    <td>{{ s[4] }}</td>
+                    <td>{{ s["id"] }}</td>
+                    <td>{{ s["name"] }}</td>
+                    <td>{{ s["roll"] }}</td>
+                    <td>{{ s["dept"] }}</td>
+                    <td>{{ s["marks"] }}</td>
                 </tr>
                 {% endfor %}
             </table>
@@ -268,9 +268,9 @@ body {
 
                 {% for u in users %}
                 <tr>
-                    <td>{{ u[0] }}</td>
-                    <td>{{ u[1] }}</td>
-                    <td>{{ u[2] }}</td>
+                    <td>{{ u["id"] }}</td>
+                    <td>{{ u["username"] }}</td>
+                    <td>{{ u["role"] }}</td>
                 </tr>
                 {% endfor %}
             </table>
