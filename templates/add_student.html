@@ -82,19 +82,39 @@ button {
 button:hover {
     background: #218838;
 }
+
+/* FLASH IMPROVEMENT */
+.alert {
+    margin-left: 260px;
+    margin-right: 20px;
+}
 </style>
 
 </head>
 
 <body>
 
-<!-- FLASH MESSAGE -->
+<!-- FLASH MESSAGE (SAFE HANDLING) -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
-      <div class="alert alert-{{ category }} text-center m-3">
-        {{ message }}
-      </div>
+
+      {% if category == 'success' %}
+        <div class="alert alert-success text-center m-3">
+            {{ message }}
+        </div>
+
+      {% elif category == 'danger' %}
+        <div class="alert alert-danger text-center m-3">
+            {{ message }}
+        </div>
+
+      {% else %}
+        <div class="alert alert-info text-center m-3">
+            {{ message }}
+        </div>
+      {% endif %}
+
     {% endfor %}
   {% endif %}
 {% endwith %}

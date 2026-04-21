@@ -168,7 +168,13 @@ def student_dashboard():
 
     # FIX: prevent crash
     if student is None:
-        student = ("Not Found", username, "-", "-", 0)
+        student = {
+            "name": "Not Found",
+            "username": username,
+            "roll": "-",
+            "dept": "-",
+            "marks": 0
+        }
 
     return render_template("student_dashboard.html", student=student)
 
@@ -260,10 +266,17 @@ def add_student():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # INSERT INTO students table
         cursor.execute("""
             INSERT INTO students (name, username, roll, dept, marks)
             VALUES (?, ?, ?, ?, ?)
         """, (name, username, roll, dept, marks))
+
+        # FIX: ALSO insert into users table for login
+        cursor.execute("""
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, ?)
+        """, (username, roll, "student"))
 
         conn.commit()
         conn.close()
@@ -292,6 +305,15 @@ def student_marks():
 
     data = cursor.fetchone()
     conn.close()
+
+    # FIX: prevent crash if no record found
+    if data is None:
+        data = {
+            "name": "Not Found",
+            "roll": "-",
+            "dept": "-",
+            "marks": 0
+        }
 
     return render_template("student_marks.html", data=data)
 

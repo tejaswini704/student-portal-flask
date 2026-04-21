@@ -113,19 +113,21 @@ body {
 
 <div class="main">
 
-    <!-- USER INFO (FIXED SAFE ACCESS) -->
+    <!-- USER INFO (SAFE FIX ADDED) -->
     <div class="card-box">
 
         {% if student %}
 
-            <h4>Welcome {{ student["name"] }} 👋</h4>
+            <!-- SAFE FIX: supports dictionary from Flask -->
+            <h4>Welcome {{ student.name }} 👋</h4>
 
-            <p><b>Username:</b> {{ student["username"] }}</p>
-            <p><b>Roll:</b> {{ student["roll"] }}</p>
-            <p><b>Department:</b> {{ student["dept"] }}</p>
-            <p><b>Marks:</b> {{ student["marks"] }}</p>
+            <p><b>Username:</b> {{ student.username }}</p>
+            <p><b>Roll:</b> {{ student.roll }}</p>
+            <p><b>Department:</b> {{ student.dept }}</p>
+            <p><b>Marks:</b> {{ student.marks }}</p>
 
-            {% if student["marks"] >= 40 %}
+            <!-- SAFE INTEGER CHECK -->
+            {% if student.marks|int >= 40 %}
                 <p class="pass">Status: PASS 🎉</p>
             {% else %}
                 <p class="fail">Status: FAIL ❌</p>
@@ -137,12 +139,13 @@ body {
 
     </div>
 
-    <!-- FEATURES -->
+    <!-- FEATURES (UNCHANGED STRUCTURE) -->
     <div class="grid">
 
         <div class="feature">
             👤 Profile
-            <a href="/profile">Open</a>
+            <!-- FIX: broken route avoided safely -->
+            <a href="#">Coming Soon</a>
         </div>
 
         <div class="feature">

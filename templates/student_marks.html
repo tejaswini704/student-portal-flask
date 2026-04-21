@@ -46,10 +46,20 @@ h2 {
     <h2>📊 My Marks</h2>
 
     {% if data %}
-        <p><b>Name:</b> {{ data[0] }}</p>
-        <p><b>Roll:</b> {{ data[1] }}</p>
-        <p><b>Department:</b> {{ data[2] }}</p>
-        <p><b>Marks:</b> {{ data[3] }}</p>
+
+        <!-- FIXED: dictionary access instead of index -->
+        <p><b>Name:</b> {{ data.name }}</p>
+        <p><b>Roll:</b> {{ data.roll }}</p>
+        <p><b>Department:</b> {{ data.dept }}</p>
+        <p><b>Marks:</b> {{ data.marks }}</p>
+
+        <!-- OPTIONAL SAFE STATUS -->
+        {% if data.marks|int >= 40 %}
+            <p style="color:green; font-weight:bold;">Status: PASS 🎉</p>
+        {% else %}
+            <p style="color:red; font-weight:bold;">Status: FAIL ❌</p>
+        {% endif %}
+
     {% else %}
         <p>No marks found</p>
     {% endif %}
