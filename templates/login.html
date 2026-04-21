@@ -117,7 +117,7 @@ small {
     color: #64748b;
 }
 
-/* ✅ ERROR MESSAGE */
+/* ERROR */
 .error-msg {
     color: red;
     text-align: center;
@@ -125,12 +125,23 @@ small {
     font-size: 14px;
 }
 
-/* ✅ SUCCESS MESSAGE */
+/* SUCCESS */
 .success-msg {
     color: green;
     text-align: center;
     margin-bottom: 10px;
     font-size: 14px;
+}
+
+/* INFO BOX (NEW IMPROVEMENT) */
+.info-msg {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
 </style>
@@ -152,11 +163,16 @@ small {
 
         <h2>Login</h2>
 
-        <!-- ✅ UPDATED FLASH MESSAGE DISPLAY -->
+        <!-- INFO (NEW ADDED FOR CLARITY) -->
+        <div class="info-msg">
+            Login with your username & password to view your dashboard
+        </div>
+
+        <!-- FLASH MESSAGE -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              
+
               {% if category == 'danger' %}
                 <div class="error-msg">{{ message }}</div>
               {% elif category == 'success' %}
@@ -181,23 +197,23 @@ small {
                 <input type="password" name="password" placeholder="Password" required>
             </div>
 
-            
             <button type="submit">Login</button>
-            
-<div class="text-center mt-2">
-    <a href="/register" style="
-        text-decoration: none;
-        font-size: 14px;
-        color: #2563eb;
-    ">
-        New user? Sign up here
-    </a>
-</div>
 
+            <div class="text-center mt-2">
+                <a href="/register" style="
+                    text-decoration: none;
+                    font-size: 14px;
+                    color: #2563eb;
+                ">
+                    New user? Sign up here
+                </a>
+            </div>
 
         </form>
 
-        <small class="text-muted">Secure login to access your dashboard</small>
+        <small class="text-muted">
+            Secure login to access your dashboard
+        </small>
 
     </div>
 

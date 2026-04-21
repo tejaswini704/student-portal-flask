@@ -32,10 +32,12 @@ def init_db():
         )
     """)
 
+    # ✅ FIXED: added username column (IMPORTANT)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
+            username TEXT,
             roll TEXT,
             dept TEXT,
             marks INTEGER
@@ -47,7 +49,7 @@ def init_db():
 
 init_db()
 
-# ================= AUTO ADMIN FIX (🔥 IMPORTANT ADDED) =================
+# ================= AUTO ADMIN FIX =================
 def create_admin():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -146,11 +148,29 @@ def register():
     return render_template('register.html')
 
 # ================= DASHBOARDS =================
+
+# ✅ FIXED STUDENT DASHBOARD (IMPORTANT)
 @app.route('/student_dashboard')
 def student_dashboard():
     if session.get('role') != 'student':
         return redirect(url_for('login'))
-    return render_template("student_dashboard.html")
+
+    username = session['user']
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT name, username, roll, dept, marks
+        FROM students
+        WHERE username = ?
+    """, (username,))
+
+    student = cursor.fetchone()
+    conn.close()
+
+    return render_template("student_dashboard.html", student=student)
+
 
 @app.route('/teacher_dashboard')
 def teacher_dashboard():
@@ -158,6 +178,7 @@ def teacher_dashboard():
         return redirect(url_for('login'))
     return render_template("teacher_dashboard.html")
 
+# ================= ADMIN DASHBOARD =================
 @app.route('/dashboard')
 def dashboard():
     if session.get('role') != 'admin':
@@ -183,6 +204,9 @@ def dashboard():
     """)
     recent_students = cursor.fetchall()
 
+    cursor.execute("SELECT id, username, role FROM users")
+    users = cursor.fetchall()
+
     conn.close()
 
     return render_template(
@@ -190,7 +214,8 @@ def dashboard():
         total_students=total_students,
         pass_count=pass_count,
         fail_count=fail_count,
-        recent_students=recent_students
+        recent_students=recent_students,
+        users=users
     )
 
 # ================= VIEW =================
@@ -214,12 +239,11 @@ def view_students():
         cursor.execute("SELECT id, name, roll, dept, marks FROM students")
 
     students = cursor.fetchall()
-
     conn.close()
 
     return render_template("view_students.html", students=students, search=search)
 
-# ================= ADD =================
+# ================= ADD (FIXED) =================
 @app.route('/add', methods=['GET', 'POST'])
 def add_student():
     if session.get('role') != 'admin':
@@ -227,6 +251,7 @@ def add_student():
 
     if request.method == 'POST':
         name = request.form['name']
+        username = request.form['username']   # ✅ FIX ADDED
         roll = request.form['roll']
         dept = request.form['dept']
         marks = request.form['marks']
@@ -235,9 +260,9 @@ def add_student():
         cursor = conn.cursor()
 
         cursor.execute("""
-            INSERT INTO students (name, roll, dept, marks)
-            VALUES (?, ?, ?, ?)
-        """, (name, roll, dept, marks))
+            INSERT INTO students (name, username, roll, dept, marks)
+            VALUES (?, ?, ?, ?, ?)
+        """, (name, username, roll, dept, marks))
 
         conn.commit()
         conn.close()
@@ -247,28 +272,22 @@ def add_student():
 
     return render_template('add_student.html')
 
-# ================= PROFILE =================
-@app.route('/profile')
-def profile():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-
-    return render_template("profile.html")
-
-# ================= STUDENT MARKS =================
+# ================= STUDENT MARKS (FIXED) =================
 @app.route('/student_marks')
 def student_marks():
     if 'user' not in session:
         return redirect(url_for('login'))
 
+    username = session['user']
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT name, roll,dept, marks 
+        SELECT name, roll, dept, marks 
         FROM students 
-        WHERE name=?
-    """, (session['user'],))
+        WHERE username = ?
+    """, (username,))
 
     data = cursor.fetchone()
 
@@ -377,6 +396,5 @@ def export_csv():
 
 # ================= RUN =================
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT",5000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

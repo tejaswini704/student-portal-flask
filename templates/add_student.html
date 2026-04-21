@@ -62,15 +62,10 @@ body {
 input {
     width: 100%;
     padding: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     border-radius: 8px;
     border: 1px solid #ddd;
     outline: none;
-}
-
-/* ✅ IMPROVED: spacing consistency */
-input {
-    margin-bottom: 15px;
 }
 
 button {
@@ -93,7 +88,7 @@ button:hover {
 
 <body>
 
-<!-- ✅ FLASH MESSAGE (UNCHANGED - CORRECT) -->
+<!-- FLASH MESSAGE (UNCHANGED) -->
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
@@ -104,7 +99,7 @@ button:hover {
   {% endif %}
 {% endwith %}
 
-<!-- SIDEBAR -->
+<!-- SIDEBAR (UNCHANGED) -->
 <div class="sidebar">
     <h2>🎓 Portal</h2>
     <a href="/dashboard">🏠 Dashboard</a>
@@ -121,10 +116,13 @@ button:hover {
 
         <h3 class="mb-4">➕ Add Student</h3>
 
-        <!-- ✅ IMPROVED: action added (best practice, no logic change) -->
-        <form method="POST" action="/add">
+        <!-- FORM (UNCHANGED STRUCTURE + FIX ADDED) -->
+        <form method="POST">
 
             <input type="text" name="name" placeholder="Name" required>
+
+            <!-- ✅ ADDED FIELD (IMPORTANT FIX) -->
+            <input type="text" name="username" placeholder="Username (for login)" required>
 
             <input type="text" name="roll" placeholder="Roll No" required>
 

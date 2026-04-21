@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard - Student Portal</title>
+<title>Dashboard - Student Management System</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Chart.js (ADDED) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -106,6 +104,23 @@ body {
     font-weight: bold;
     color: #2a5298;
 }
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    padding: 15px;
+    margin-top: 30px;
+    color: gray;
+    font-size: 14px;
+}
+
+.sidebar a[href="/logout"] {
+    background: rgba(255, 0, 0, 0.2);
+}
+
+.sidebar a[href="/logout"]:hover {
+    background: rgba(255, 0, 0, 0.4);
+}
 </style>
 
 </head>
@@ -124,7 +139,7 @@ body {
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <h2>🎓 Portal</h2>
+    <h2>🎓 Student Management System</h2>
     <a href="/dashboard">🏠 Dashboard</a>
     <a href="/add">➕ Add Student</a>
     <a href="/view">📋 View Students</a>
@@ -139,6 +154,15 @@ body {
     <div class="header">
         <h3>Welcome Admin 👋</h3>
         <p style="color:gray;">Manage your student system easily</p>
+    </div>
+
+    <!-- INFO BOX -->
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                📌 System Status: Active | Secure Session Enabled | Flask Application Running
+            </div>
+        </div>
     </div>
 
     <!-- STATS -->
@@ -203,6 +227,7 @@ body {
         <div class="card-box">
             <h5>Recent Students</h5>
 
+            {% if recent_students %}
             <table class="table table-bordered mt-3">
                 <tr>
                     <th>ID</th>
@@ -222,43 +247,75 @@ body {
                 </tr>
                 {% endfor %}
             </table>
+            {% else %}
+            <p>No students found</p>
+            {% endif %}
 
         </div>
     </div>
 
-    <!-- CHART (FIXED & ADDED PROPERLY) -->
+    <!-- REGISTERED USERS -->
     <div class="mt-4">
-    <div class="card-box">
-        <h5>📊 Performance Overview</h5>
+        <div class="card-box">
+            <h5>👤 Registered Users</h5>
 
-        <div style="width: 250px; margin: auto;">
-            <canvas id="studentChart"></canvas>
+            <table class="table table-bordered mt-3">
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                </tr>
+
+                {% for u in users %}
+                <tr>
+                    <td>{{ u[0] }}</td>
+                    <td>{{ u[1] }}</td>
+                    <td>{{ u[2] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
         </div>
-
-        <p style="margin-top:10px; color:gray;">
-            Pass vs Fail distribution
-        </p>
     </div>
-</div>
 
-<!-- CHART SCRIPT (MUST BE OUTSIDE TABLE & AT BOTTOM) -->
-<script>
-var ctx = document.getElementById('studentChart').getContext('2d');
+    <!-- CHART -->
+    <div class="mt-4">
+        <div class="card-box">
+            <h5>📊 Performance Overview</h5>
 
-new Chart(ctx, {
-    type: 'pie',
-    data: {
-        labels: ['Pass', 'Fail'],
-        datasets: [{
-            data: [
-                {{ pass_count }},
-                {{ fail_count }}
-            ],
-            backgroundColor: ['#28a745', '#dc3545']
-        }]
-    }
-});
-</script>
+            <div style="width: 250px; margin: auto;">
+                <canvas id="studentChart"></canvas>
+            </div>
+
+            <p style="margin-top:10px; color:gray;">
+                Pass vs Fail distribution
+            </p>
+        </div>
+    </div>
+
+    <script>
+    var ctx = document.getElementById('studentChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Pass', 'Fail'],
+            datasets: [{
+                data: [
+                    {{ pass_count }},
+                    {{ fail_count }}
+                ],
+                backgroundColor: ['#28a745', '#dc3545']
+            }]
+        }
+    });
+    </script>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        © 2026 Student Management System | Built using Flask & SQLite
+    </div>
+
 </div>
 </body>
 </html>

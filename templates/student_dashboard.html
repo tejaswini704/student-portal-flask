@@ -33,14 +33,14 @@ body {
     margin-bottom: 15px;
 }
 
-/* GRID (IMPROVED ONLY) */
+/* GRID */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 12px;
 }
 
-/* FEATURE BOX (FIXED SIZE ONLY) */
+/* FEATURE BOX */
 .feature {
     background: white;
     padding: 10px;
@@ -48,7 +48,7 @@ body {
     border: 1px solid #ddd;
     text-align: center;
 
-    height: 105px;   /* FIXED SMALL SIZE */
+    height: 120px;
 
     display: flex;
     flex-direction: column;
@@ -65,7 +65,6 @@ body {
     box-shadow: 0 6px 15px rgba(0,0,0,0.12);
 }
 
-/* BUTTON INSIDE BOX */
 .feature a {
     margin-top: 8px;
     text-decoration: none;
@@ -74,6 +73,17 @@ body {
     padding: 4px 10px;
     border-radius: 5px;
     font-size: 12px;
+}
+
+/* PASS FAIL */
+.pass {
+    color: green;
+    font-weight: bold;
+}
+
+.fail {
+    color: red;
+    font-weight: bold;
 }
 
 /* LOGOUT */
@@ -103,13 +113,30 @@ body {
 
 <div class="main">
 
-    <!-- KEEP AS IT IS -->
+    <!-- USER INFO (FIXED: NOW SHOWS REAL DATA) -->
     <div class="card-box">
-        <h4>Welcome, {{ session['user'] }} 👋</h4>
-        <p>Role: {{ session['role'] }}</p>
+
+        {% if student %}
+
+            <h4>Welcome {{ student[0] }} 👋</h4>
+            <p><b>Username:</b> {{ student[1] }}</p>
+            <p><b>Roll:</b> {{ student[2] }}</p>
+            <p><b>Department:</b> {{ student[3] }}</p>
+            <p><b>Marks:</b> {{ student[4] }}</p>
+
+            {% if student[4] >= 40 %}
+                <p class="pass">Status: PASS 🎉</p>
+            {% else %}
+                <p class="fail">Status: FAIL ❌</p>
+            {% endif %}
+
+        {% else %}
+            <h4>No student data found</h4>
+        {% endif %}
+
     </div>
 
-    <!-- KEEP AS IT IS -->
+    <!-- FEATURES (UNCHANGED) -->
     <div class="grid">
 
         <div class="feature">
@@ -128,7 +155,7 @@ body {
 
     </div>
 
-    <!-- KEEP AS IT IS -->
+    <!-- LOGOUT -->
     <a class="logout" href="/logout">Logout</a>
 
 </div>

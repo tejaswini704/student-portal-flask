@@ -48,9 +48,10 @@ h2 {
     {% if data %}
         <p><b>Name:</b> {{ data[0] }}</p>
         <p><b>Roll:</b> {{ data[1] }}</p>
-        <p><b>Marks:</b> {{ data[2] }}</p>
+        <p><b>Department:</b> {{ data[2] }}</p>
+        <p><b>Marks:</b> {{ data[3] }}</p>
     {% else %}
-        <p>No data found</p>
+        <p>No marks found</p>
     {% endif %}
 
     <a href="/student_dashboard" class="back">Back</a>
